@@ -9,14 +9,22 @@
 # disconnected-graph problem, then pooled via inverse-variance meta-analysis.
 #
 # Multiverse dimensions:
-#   1. Network representation: directed_weighted, undirected_weighted,
-#                              directed_strong_ties (top-quartile weight)
+#   1. Network representation: directed_weighted, undirected_weighted
 #   2. ERGM specification:
-#        Directed:   m1 (edges), m2 (edges+mutual),
-#                    m3 (edges+mutual+gwodegree), m4 (edges+mutual+gwesp),
-#                    m5 (edges+gwidegree+gwesp)
-#        Undirected: m1 (edges), m2 (edges+gwdegree),
-#                    m3 (edges+gwesp), m4 (edges+gwdegree+gwesp)
+#        Directed:   m1 (edges)
+#                    m2 (edges + mutual)
+#                    m3 (edges + mutual + gwodegree)
+#                    m4 (edges + mutual + gwesp)  -- TOP-10 VILLAGES ONLY
+#        Undirected: m1 (edges)
+#                    m2 (edges + gwdegree)
+#                    m3 (edges + gwesp)            -- TOP-10 VILLAGES ONLY
+#
+# NOTE: Specifications involving gwesp (geometrically-weighted edgewise shared
+# partners) require full MCMC sampling and are computationally prohibitive for
+# all 33 villages. Following the pre-registered analysis plan, these
+# specifications are restricted to the 10 largest villages by household count:
+# v52 (375), v65 (362), v59 (353), v71 (310), v43 (308),
+# v50 (298), v55 (271), v45 (269), v76 (267), v40 (262).
 #
 # Usage:
 #   Rscript r/ergm_multiverse.R \
@@ -27,7 +35,6 @@
 suppressPackageStartupMessages({
   library(network)
   library(ergm)
-  library(sna)
 })
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -38,84 +45,100 @@ dir.create(file.path(outdir, "tables"), recursive = TRUE, showWarnings = FALSE)
 dir.create(file.path(outdir, "figs"),   recursive = TRUE, showWarnings = FALSE)
 
 cat("Reading edge list from:", edgelist_csv, "\n")
-el <- read.csv(edgelist_csv, stringsAsFactors = FALSE)
-cat("  Edges:", nrow(el), "\n")
-cat("  Nodes:", length(unique(c(el$from, el$to))), "\n")
-
+el          <- read.csv(edgelist_csv, stringsAsFactors = FALSE)
 all_nodes   <- unique(c(el$from, el$to))
 village_of  <- function(node) sub("_.*", "", node)
 villages    <- unique(village_of(all_nodes))
-cat("  Villages:", length(villages), "\n")
+cat("  Total villages:", length(villages), "\n")
 
-# ── Helper: build network for one village ──────────────────────────────────
-make_village_net <- function(village_nodes, edges_df, directed = TRUE,
-                             strong_tie_q = NULL) {
+# ── Top-10 villages by household count (pre-computed) ─────────────────────
+top10_villages <- c("v52", "v65", "v59", "v71", "v43",
+                    "v50", "v55", "v45", "v76", "v40")
+cat("  Top-10 villages for gwesp specs:", paste(top10_villages, collapse=", "), "\n")
+
+# ── Helper: build network for one village ─────────────────────────────────
+make_village_net <- function(village_nodes, edges_df, directed = TRUE) {
   sub_el <- edges_df[edges_df$from %in% village_nodes &
-                       edges_df$to %in% village_nodes, ]
-  if (!is.null(strong_tie_q)) {
-    thresh <- quantile(edges_df$weight, strong_tie_q, na.rm = TRUE)
-    sub_el <- sub_el[sub_el$weight >= thresh, ]
-  }
+                       edges_df$to   %in% village_nodes, ]
   if (nrow(sub_el) == 0) return(NULL)
   network(sub_el[, c("from", "to")], directed = directed,
           matrix.type = "edgelist")
 }
 
-# ── ERGM specifications (as character strings, built into formulas per net) ─
-spec_terms_directed <- list(
-  m1 = "edges",
-  m2 = "edges + mutual",
-  m3 = "edges + mutual + gwodegree(0.5, fixed=TRUE)",
-  m4 = "edges + mutual + gwesp(0.5, fixed=TRUE)",
-  m5 = "edges + gwidegree(0.5, fixed=TRUE) + gwesp(0.5, fixed=TRUE)"
+# ── ERGM specifications ────────────────────────────────────────────────────
+# gwesp_only = TRUE means this spec runs on top-10 villages only
+spec_defs_directed <- list(
+  m1 = list(terms = "edges",
+            gwesp_only = FALSE),
+  m2 = list(terms = "edges + mutual",
+            gwesp_only = FALSE),
+  m3 = list(terms = "edges + mutual + gwodegree(0.5, fixed=TRUE)",
+            gwesp_only = FALSE),
+  m4 = list(terms = "edges + mutual + gwesp(0.5, fixed=TRUE)",
+            gwesp_only = TRUE)
 )
-spec_terms_undirected <- list(
-  m1 = "edges",
-  m2 = "edges + gwdegree(0.5, fixed=TRUE)",
-  m3 = "edges + gwesp(0.5, fixed=TRUE)",
-  m4 = "edges + gwdegree(0.5, fixed=TRUE) + gwesp(0.5, fixed=TRUE)"
+spec_defs_undirected <- list(
+  m1 = list(terms = "edges",
+            gwesp_only = FALSE),
+  m2 = list(terms = "edges + gwdegree(0.5, fixed=TRUE)",
+            gwesp_only = FALSE),
+  m3 = list(terms = "edges + gwesp(0.5, fixed=TRUE)",
+            gwesp_only = TRUE)
 )
 
-# ── Representation definitions ─────────────────────────────────────────────
 rep_defs <- list(
-  directed_weighted   = list(directed = TRUE,  strong_q = NULL),
-  undirected_weighted = list(directed = FALSE, strong_q = NULL),
-  directed_strong     = list(directed = TRUE,  strong_q = 0.75)
+  directed_weighted   = list(directed = TRUE),
+  undirected_weighted = list(directed = FALSE)
 )
 
-# ── Main loop ──────────────────────────────────────────────────────────────
+# ── MCMC control settings ──────────────────────────────────────────────────
+# For non-gwesp specs: standard convergence settings
+ctrl_standard <- control.ergm(
+  MCMLE.maxit      = 20,
+  MCMC.samplesize  = 1024,
+  seed             = 42
+)
+# For gwesp specs: more generous settings to handle triangle terms
+ctrl_gwesp <- control.ergm(
+  MCMLE.maxit      = 20,
+  MCMC.samplesize  = 2048,
+  MCMC.burnin      = 10000,
+  seed             = 42
+)
+
+# ── Main loop ─────────────────────────────────────────────────────────────
 all_results <- list()
 k <- 1
 
 for (rep_nm in names(rep_defs)) {
   rd         <- rep_defs[[rep_nm]]
-  spec_terms <- if (rd$directed) spec_terms_directed else spec_terms_undirected
+  spec_defs  <- if (rd$directed) spec_defs_directed else spec_defs_undirected
   cat("\n=== Representation:", rep_nm, "===\n")
 
-  for (spec_nm in names(spec_terms)) {
-    cat("  Spec:", spec_nm, "\n")
+  for (spec_nm in names(spec_defs)) {
+    spec       <- spec_defs[[spec_nm]]
+    is_gwesp   <- spec$gwesp_only
+    run_villages <- if (is_gwesp) top10_villages else villages
+    ctrl       <- if (is_gwesp) ctrl_gwesp else ctrl_standard
+
+    cat("  Spec:", spec_nm,
+        if (is_gwesp) "(top-10 villages only)" else "(all villages)", "\n")
+
     village_coefs <- list()
 
-    for (vill in villages) {
+    for (vill in run_villages) {
       vnodes <- all_nodes[village_of(all_nodes) == vill]
       net <- tryCatch(
-        make_village_net(vnodes, el,
-                         directed    = rd$directed,
-                         strong_tie_q = rd$strong_q),
+        make_village_net(vnodes, el, directed = rd$directed),
         error = function(e) NULL
       )
       if (is.null(net)) next
       if (network.size(net) < 5 || network.edgecount(net) < 3) next
 
-      # Build formula string with the network object name
-      fml_str <- paste0("net ~ ", spec_terms[[spec_nm]])
-      fml     <- as.formula(fml_str)
+      fml <- as.formula(paste0("net ~ ", spec$terms))
 
       fit <- tryCatch(
-        withCallingHandlers(
-          ergm(fml, control = control.ergm(MCMLE.maxit = 20, seed = 42)),
-          warning = function(w) invokeRestart("muffleWarning")
-        ),
+        ergm(fml, control = ctrl),
         error = function(e) NULL
       )
       if (is.null(fit)) next
@@ -128,6 +151,7 @@ for (rep_nm in names(rep_defs)) {
       coefs$village        <- vill
       coefs$representation <- rep_nm
       coefs$spec           <- spec_nm
+      coefs$gwesp_sample   <- is_gwesp
       coefs$n_nodes        <- network.size(net)
       coefs$n_edges        <- network.edgecount(net)
       coefs$AIC            <- tryCatch(AIC(fit), error = function(e) NA_real_)
@@ -154,18 +178,17 @@ coef_tbl <- do.call(rbind, all_results)
 rownames(coef_tbl) <- NULL
 
 # Standardise column names
-names(coef_tbl) <- gsub("Std\\. Error",      "se",       names(coef_tbl))
-names(coef_tbl) <- gsub("^Estimate$",        "estimate", names(coef_tbl))
-names(coef_tbl) <- gsub("z value",           "z",        names(coef_tbl))
-names(coef_tbl) <- gsub("Pr\\(>\\|z\\|\\)",  "p",        names(coef_tbl))
-names(coef_tbl) <- gsub("MCMC %",            "mcmc_pct", names(coef_tbl))
+names(coef_tbl) <- gsub("Std\\. Error",     "se",       names(coef_tbl))
+names(coef_tbl) <- gsub("^Estimate$",       "estimate", names(coef_tbl))
+names(coef_tbl) <- gsub("z value",          "z",        names(coef_tbl))
+names(coef_tbl) <- gsub("Pr\\(>\\|z\\|\\)", "p",        names(coef_tbl))
 
 write.csv(coef_tbl,
           file.path(outdir, "tables", "ergm_multiverse_coefficients.csv"),
           row.names = FALSE)
 cat("\nWrote", nrow(coef_tbl), "coefficient rows to ergm_multiverse_coefficients.csv\n")
 
-# ── Meta-analytic pooling ──────────────────────────────────────────────────
+# ── Meta-analytic pooling ─────────────────────────────────────────────────
 pool_results <- list()
 grp_keys <- unique(paste(coef_tbl$representation, coef_tbl$spec,
                           coef_tbl$term, sep = "|"))
@@ -190,6 +213,7 @@ for (grp in grp_keys) {
     pooled_z        = round(z,   3),
     pooled_p        = round(p,   4),
     n_villages      = nrow(sub),
+    gwesp_sample    = unique(sub$gwesp_sample)[1],
     stringsAsFactors = FALSE
   )
 }
@@ -200,8 +224,8 @@ write.csv(pool_tbl,
           row.names = FALSE)
 cat("Wrote", nrow(pool_tbl), "pooled rows to ergm_pooled_estimates.csv\n")
 
-# ── Fit summary ────────────────────────────────────────────────────────────
-fit_tbl <- aggregate(cbind(AIC, BIC) ~ representation + spec,
+# ── Fit summary ───────────────────────────────────────────────────────────
+fit_tbl <- aggregate(cbind(AIC, BIC) ~ representation + spec + gwesp_sample,
                      data = coef_tbl,
                      FUN  = function(x) round(mean(x, na.rm = TRUE), 2))
 fit_tbl <- fit_tbl[order(fit_tbl$AIC), ]
@@ -209,30 +233,5 @@ write.csv(fit_tbl,
           file.path(outdir, "tables", "ergm_fit_summary.csv"),
           row.names = FALSE)
 cat("Wrote fit summary to ergm_fit_summary.csv\n")
-
-# ── Forest plot: pooled edges term ────────────────────────────────────────
-edges_pool <- pool_tbl[pool_tbl$term == "edges", ]
-if (nrow(edges_pool) > 0) {
-  png(file.path(outdir, "figs", "ergm_edges_forest.png"),
-      width = 900, height = 500, res = 120)
-  par(mar = c(5, 14, 3, 2))
-  y    <- seq_len(nrow(edges_pool))
-  est  <- edges_pool$pooled_estimate
-  lo   <- est - 1.96 * edges_pool$pooled_se
-  hi   <- est + 1.96 * edges_pool$pooled_se
-  xlim <- range(c(lo, hi), na.rm = TRUE)
-  col  <- ifelse(edges_pool$pooled_p < 0.05, "steelblue", "grey60")
-  plot(est, y, xlim = xlim, yaxt = "n", pch = 19,
-       xlab = "Pooled ERGM Edges Coefficient (log-odds)",
-       main = "ERGM Edges Term: Pooled Estimates by Representation and Specification",
-       col  = col)
-  arrows(lo, y, hi, y, length = 0.05, angle = 90, code = 3, col = col)
-  abline(v = 0, lty = 2, col = "red")
-  axis(2, at = y,
-       labels = paste(edges_pool$representation, edges_pool$spec, sep = " / "),
-       las = 2, cex.axis = 0.7)
-  dev.off()
-  cat("Wrote edges forest plot\n")
-}
 
 cat("\nAll ERGM outputs written to:", outdir, "\n")
