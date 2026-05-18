@@ -1,0 +1,6 @@
+Representation,Nodes,Edges,Density,Centrality Measures
+directed_weighted,7311,17538,0.000328,26
+directed_binary,7311,17538,0.000328,26
+undirected_weighted,7311,34480,0.000645,26
+undirected_binary,7311,34480,0.000645,26
+directed_strong_ties,7311,4420,8.3e-05,26

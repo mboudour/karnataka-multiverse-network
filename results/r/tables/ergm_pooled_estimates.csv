@@ -1,0 +1,10 @@
+"representation","spec","term","pooled_estimate","pooled_se","n_villages"
+"directed_weighted","m1","edges",-2.5577,0.0079,33
+"directed_weighted","m2","edges",-2.5864,0.0086,33
+"directed_weighted","m2","mutual",-0.7142,0.0656,24
+"directed_weighted","m3","edges",-2.3552,0.0104,33
+"directed_weighted","m3","mutual",-0.5975,0.0593,24
+"directed_weighted","m3","gwodeg.fixed.0.5",-1.7678,0.0928,33
+"undirected_weighted","m1","edges",-2.4666,0.0199,9
+"undirected_weighted","m2","edges",-2.1909,0.0193,9
+"undirected_weighted","m2","gwdeg.fixed.0.5",-3.7915,0.2795,9

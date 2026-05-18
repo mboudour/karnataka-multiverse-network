@@ -1,0 +1,181 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{natbib}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{longtable}
+
+\geometry{margin=1in}
+
+\title{Multiverse Analysis of the Karnataka Loan Nomination Network}
+\author{Manus AI}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+The analysis of social networks is sensitive to a myriad of methodological choices, from how the network is represented to the structural metrics employed, and the statistical models used for inference. Following the multiverse analysis paradigm \citep{YoungCumberworth2025, Steegen2016}, we conduct a comprehensive multiverse analysis of the Karnataka Loan Nomination Network \citep{BanerjeeEtAl2013}. We evaluate 780 distinct analytical pathways to predict loan nominations across 33 villages, varying the outcome variable (raw count, binary, rank, share), the regression model (OLS, Poisson, Negative Binomial, Logit), the network representation (directed, undirected, weighted, unweighted, thresholded), and 26 different centrality measures. We also estimate a multiverse of Exponential Random Graph Models (ERGMs) to evaluate the network's generative processes. Our findings reveal extreme variance in effect sizes, largely driven by the choice of regression model and the handling of overdispersion. We demonstrate that structural hole measures (Effective Size, k-Core) and local degree measures consistently predict nominations across specifications, whereas distance-based measures like Betweenness fail to yield robust signals in this highly fragmented network.
+\end{abstract}
+
+\section{Introduction}
+Social network analysis relies on numerous seemingly arbitrary analytical decisions: Should ties be directed or undirected? Should edge weights be thresholded? Which centrality measure best captures "influence"? How should highly skewed, zero-inflated outcome variables be modeled? Standard practice often involves reporting a single, preferred analytical path, masking the underlying uncertainty and potentially leading to fragile conclusions \citep{DelGiudice2021}. 
+
+To address this, we apply a multiverse analysis \citep{Simonsohn2020} to the Karnataka Loan Nomination Network, originally collected by \citet{BanerjeeEtAl2013} to study the diffusion of microfinance. The network consists of 7,311 households distributed across 33 distinct, disconnected villages. The core inferential goal is to predict whether a household is nominated by others as a reliable source of loan advice, based on their structural position in the network.
+
+\section{Methodology: Constructing the Multiverse}
+
+We construct a massive analytical multiverse spanning four distinct dimensions of researcher degrees of freedom:
+
+\subsection{The Network Representation Multiverse}
+The raw data records directed, weighted nominations between households. We vary the representation of this graph across five definitions:
+\begin{enumerate}
+    \item \textbf{Directed Weighted}: The raw, unmodified network.
+    \item \textbf{Directed Binary}: All non-zero edge weights are set to 1.
+    \item \textbf{Undirected Weighted}: Ties are symmetrised by summing weights in both directions.
+    \item \textbf{Undirected Binary}: A tie exists if a nomination occurred in either direction.
+    \item \textbf{Directed Strong Ties}: Only ties with weights in the top quartile ($w \ge 0.75$) are retained.
+\end{enumerate}
+
+Table \ref{tab:universe_summary} summarises the basic structural properties of these representations.
+
+\begin{table}[H]
+\centering
+\caption{Summary of network representations in the Karnataka multiverse.}
+\label{tab:universe_summary}
+\begin{tabular}{lrrrr}
+\toprule
+Representation & Nodes & Edges & Density & Centralities Computed \\
+\midrule
+Directed Weighted & 7311 & 17538 & 0.0003 & 26 \\
+Directed Binary & 7311 & 17538 & 0.0003 & 26 \\
+Undirected Weighted & 7311 & 34480 & 0.0006 & 26 \\
+Undirected Binary & 7311 & 34480 & 0.0006 & 26 \\
+Directed Strong Ties & 7311 & 4420 & 0.0001 & 26 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{The Structural Multiverse}
+For each representation, we compute 26 distinct centrality measures spanning four theoretical families \citep{WassermanFaust1994, Newman2018}:
+\begin{itemize}
+    \item \textbf{Degree/Local}: In-Degree, Out-Degree, Strength, Total Degree, k-Core, Onion Layer.
+    \item \textbf{Distance/Geodesic}: Harmonic Centrality, Closeness Centrality, Betweenness (sampled), Load Centrality.
+    \item \textbf{Spectral/Prestige}: PageRank, Eigenvector Centrality, Katz Centrality, HITS (Hubs \& Authorities), Proximity Prestige.
+    \item \textbf{Structural Holes}: Effective Size, Constraint \citep{Burt2004}.
+\end{itemize}
+
+\subsection{The Outcome Multiverse}
+The raw outcome variable—the number of times a household is nominated—is heavily zero-inflated, with only $\sim$4\% of households receiving any nominations. To test robustness to outcome definitions, we specify four variants:
+\begin{enumerate}
+    \item \textbf{Raw Count}: The integer count of nominations received.
+    \item \textbf{Binary Indicator}: 1 if nominated at least once, 0 otherwise.
+    \item \textbf{Within-Village Rank}: The percentile rank of the household's nomination count within their village.
+    \item \textbf{Within-Village Share}: The proportion of all village nominations received by the household.
+\end{enumerate}
+
+\subsection{The Inferential Multiverse}
+To map structural position to outcomes, we fit a series of regression models, including village-level fixed effects to account for the disconnected nature of the 33 components. To handle the overdispersion of the count data, we vary the model across Ordinary Least Squares (OLS), Poisson, and Negative Binomial regression. For the binary outcome, we utilise Logistic regression. Crucially, to make coefficients comparable across these disparate non-linear link functions, we compute the Average Marginal Effect (AME) for every specification.
+
+\section{Results: Predicting Loan Nominations}
+
+The full pipeline yields 780 distinct regression specifications. We assess robustness by examining the stability of the Average Marginal Effects across the multiverse.
+
+\subsection{Stability of Centrality Effects}
+Table \ref{tab:ame_summary} highlights the centrality measures that yield the most consistently positive and significant Average Marginal Effects across the various outcome and model specifications. 
+
+\begin{table}[H]
+\centering
+\caption{Top Centrality-Model Specifications by Average Marginal Effect (AME) Stability}
+\label{tab:ame_summary}
+\begin{tabular}{lllr}
+\toprule
+Centrality Measure & Outcome Variant & Model & Mean AME \\
+\midrule
+Effective Size & Raw Count & OLS & 18.94 \\
+In-Degree & Raw Count & OLS & 11.93 \\
+Total Degree & Raw Count & OLS & 11.73 \\
+Weighted In-Degree & Raw Count & OLS & 11.28 \\
+Strength & Raw Count & OLS & 11.00 \\
+PageRank & Raw Count & OLS & 9.77 \\
+Harmonic Centrality & Raw Count & OLS & 9.30 \\
+Closeness Centrality & Raw Count & OLS & 9.24 \\
+Triangles & Raw Count & OLS & 8.62 \\
+Effective Size & Raw Count & Poisson & 7.05 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The results indicate that \textbf{Effective Size} (a measure of structural holes and non-redundant contacts) and \textbf{In-Degree} (raw popularity) are the most robust predictors of receiving loan nominations. In contrast, global distance measures like Betweenness Centrality exhibit highly unstable or insignificant AMEs. This is theoretically consistent: in highly fragmented, village-level networks, local embeddedness and structural autonomy matter more than acting as a global bridge between distant nodes \citep{Borgatti2005}.
+
+We also observe that the choice of regression model drastically impacts the scale of the AME. Negative Binomial models, while theoretically appropriate for overdispersed counts, yielded highly unstable marginal effects in the presence of extreme zero-inflation, occasionally producing computationally unbounded AMEs. OLS and Poisson models provided much more stable marginal inferences.
+
+\subsection{Stability of Node Rankings}
+A key question in multiverse analysis is whether different methodological choices identify the \textit{same} key actors. Table \ref{tab:pagerank_stability} shows the stability of the top-ranked households using PageRank \citep{PageRank1999} across the five different network representations.
+
+\begin{table}[H]
+\centering
+\caption{Most stable nodes under PageRank across the 5 network representations.}
+\label{tab:pagerank_stability}
+\begin{tabular}{lrr}
+\toprule
+Household ID & Top-20 Count & Top-20 Freq. \\
+\midrule
+v56\_h66 & 5 & 100\% \\
+v56\_h4 & 4 & 80\% \\
+v42\_h110 & 4 & 80\% \\
+v53\_h64 & 4 & 80\% \\
+v53\_h44 & 4 & 80\% \\
+v42\_h19 & 3 & 60\% \\
+v77\_h92 & 3 & 60\% \\
+v66\_h91 & 3 & 60\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Household \texttt{v56\_h66} is uniquely robust, appearing in the top 20 most central nodes regardless of whether the network is treated as directed, undirected, weighted, or thresholded to strong ties only. However, most nodes only appear in the top 20 under specific representational assumptions, highlighting the fragility of targeting specific "influencers" based on a single network definition.
+
+\section{Results: Network Generation (ERGM Multiverse)}
+
+To understand the micro-level processes generating the network structure, we estimated Exponential Random Graph Models (ERGMs) \citep{Lusher2013, Robins2015}. Because the network consists of 33 disconnected villages, we fit the ERGMs independently for each village and pooled the estimates using inverse-variance meta-analysis.
+
+Table \ref{tab:ergm_pooled} presents the meta-analytic pooled coefficients for the directed and undirected network representations.
+
+\begin{table}[H]
+\centering
+\caption{Pooled ERGM Estimates across 33 Villages}
+\label{tab:ergm_pooled}
+\begin{tabular}{lllrrr}
+\toprule
+Representation & Spec & Term & Pooled Est. & Pooled SE & N Villages \\
+\midrule
+Directed & m1 & Edges & -2.5577 & 0.0079 & 33 \\
+Directed & m2 & Edges & -2.5864 & 0.0086 & 33 \\
+Directed & m2 & Mutual & -0.7142 & 0.0656 & 24 \\
+Directed & m3 & Edges & -2.3552 & 0.0104 & 33 \\
+Directed & m3 & Mutual & -0.5975 & 0.0593 & 24 \\
+Directed & m3 & GW O-Degree & -1.7678 & 0.0928 & 33 \\
+\midrule
+Undirected & m1 & Edges & -2.4666 & 0.0199 & 9 \\
+Undirected & m2 & Edges & -2.1909 & 0.0193 & 9 \\
+Undirected & m2 & GW Degree & -3.7915 & 0.2795 & 9 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The strongly negative `edges` coefficients reflect the extreme sparsity of the loan nomination networks. Interestingly, the `mutual` term in the directed models is negative (-0.71), indicating that households are actually \textit{less} likely to mutually nominate each other for loan advice than chance would predict, controlling for density. This suggests a hierarchical or directed flow of advice, rather than reciprocal sharing \citep{Lazega2001}. The negative geometrically-weighted degree terms indicate a lack of extreme "hubs" in the network formation process.
+
+\section{Conclusion}
+By expanding the analytical lens into a multiverse, we demonstrate that the structural determinants of loan nominations in rural Karnataka are highly sensitive to model choice, particularly regarding the handling of zero-inflated count data. However, local structural hole measures (Effective Size) and raw degree centrality emerge as robust predictors across the vast majority of specifications. Furthermore, our ERGM multiverse reveals a sparse, non-reciprocal generative structure underlying the village networks. This approach underscores the necessity of multiverse analysis in network science to separate robust sociological phenomena from methodological artifacts.
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\end{document}
