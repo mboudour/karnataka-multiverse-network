@@ -190,12 +190,16 @@ Rscript r/ergm_multiverse.R data/loan_nomination_edgelist.csv results/r
 
 ## Key Findings (Workflow Draft)
 
-- **Effective Size** (structural holes) and **In-Degree** are the most robust predictors of receiving loan nominations, appearing at the top of the specification curve across the majority of the 780 specifications.
-- **Betweenness Centrality** yields highly unstable and often insignificant effects — consistent with the fragmented, village-bounded structure of the network, where global bridging is structurally impossible.
-- **Model choice** (OLS vs. Poisson vs. Negative Binomial) is the single largest driver of AME scale. The Negative Binomial model diverged pathologically for 28 specifications under extreme zero-inflation, producing unbounded AMEs — a substantive finding about the limits of standard count models for sparse nomination data.
-- **ERGM results** reveal a sparse, non-reciprocal network: the negative `mutual` coefficient indicates that households are *less* likely to mutually nominate each other than chance would predict, suggesting a hierarchical flow of loan advice rather than reciprocal exchange. The `gwesp` term was found to be non-identifiable due to extreme triangle sparsity.
+### Methodological Contribution
+The core contribution of this paper is demonstrating that multiverse analysis transforms hidden analytical sensitivity into an explicit object of inquiry. Network-analytic conclusions are fragile in a structured, mappable way: the choice of regression model, network representation, and centrality measure each introduce systematic variance in estimated effects. The framework — formalising the analytical space as a Cartesian product, computing AMEs for comparability, and visualising the full specification distribution — provides a replicable template for network science.
+
+### Substantive Findings
+- **Effective Size** (structural holes) and **In-Degree** exhibit comparatively greater stability across specifications, appearing consistently at the top of the specification curve.
+- **Betweenness Centrality** yields highly unstable and often insignificant effects — consistent with the village-disconnected structure of the network, where long-range bridging is structurally impossible.
+- **Model choice** (OLS vs. Poisson vs. Negative Binomial) is the single largest driver of AME scale. The Negative Binomial model diverged pathologically for 28 specifications under extreme zero-inflation — a substantive finding about the limits of standard count models for sparse nomination data. ZIP/ZINB models are recommended for future work.
+- **Centrality collinearity:** Degree, Strength, PageRank, Katz, and Eigenvector centrality largely agree with one another; meaningful variation lies between families, not within them.
+- **ERGM results** reveal a sparse, non-reciprocal network: the negative `mutual` coefficient suggests hierarchical rather than symmetric advice flows. The `gwesp` (triangle closure) term was non-identifiable across all village networks — triadic closure does not appear to be a significant generative force in these loan-advice networks.
 - **Node rankings are fragile:** only household `v56_h66` appears in the top-20 by PageRank across all five network representations.
-- **Centrality collinearity:** The centrality correlation heatmap reveals strong clustering among degree-family measures and among prestige/spectral measures, while Constraint and Clustering form a distinct anti-correlated cluster.
 
 ---
 
