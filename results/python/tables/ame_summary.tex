@@ -1,40 +1,41 @@
-\begin{table}
-\caption{Top 30 universe-level AME summaries (sorted by median AME).}
+\begin{table}[htbp]
+\centering
+\caption{Top 30 universe-level AME summaries (sorted by mean AME; excludes 28 divergent Negative Binomial specifications).}
 \label{tab:ame_summary}
-\begin{tabular}{lrrrrrr}
+\begin{tabular}{lllrrc}
 \toprule
-Centrality & Outcome & Model & Mean AME & Frac.\textbackslash \space Sig. & N \\
+Centrality & Outcome & Model & Mean AME & Frac.\textbackslash space Sig. & N \\
 \midrule
-katz\_centrality & raw\_count & negbin & 111325413710653986701312.0000 & 0.2000 & 5 \\
-triangles & raw\_count & negbin & 11675615600223616.0000 & 0.0000 & 4 \\
-pagerank & raw\_count & negbin & 4042998690021113856.0000 & 0.0000 & 5 \\
-betweenness\_k500 & raw\_count & negbin & -inf & 0.0000 & 5 \\
-load\_centrality & raw\_count & negbin & 97731927223748064.0000 & 0.4000 & 5 \\
-weighted\_in\_degree & raw\_count & negbin & 143821669.6723 & 0.4000 & 5 \\
-strength & raw\_count & negbin & 15995498.4878 & 0.4000 & 5 \\
-onion\_layer & raw\_count & negbin & 34.9698 & 0.8000 & 5 \\
+total\_degree & raw\_count & negbin & 78437.7137 & 0.8000 & 5 \\
+strength & raw\_count & negbin & 63248.1632 & 0.6667 & 3 \\
+weighted\_in\_degree & raw\_count & negbin & 63245.1189 & 0.6667 & 3 \\
+weighted\_out\_degree & raw\_count & negbin & 37945.4157 & 0.2000 & 5 \\
+katz\_centrality & raw\_count & negbin & 6323.6694 & 0.5000 & 2 \\
+katz\_prestige\_in & raw\_count & negbin & 2529.6098 & 0.2000 & 5 \\
+proximity\_prestige & raw\_count & negbin & 2087.3278 & 0.8000 & 5 \\
+closeness\_centrality & raw\_count & negbin & 2087.3278 & 0.8000 & 5 \\
+harmonic\_centrality & raw\_count & negbin & 1968.6431 & 0.8000 & 5 \\
+hits\_authority & raw\_count & negbin & 913.3995 & 0.0000 & 5 \\
 effective\_size & raw\_count & negbin & 36.8387 & 1.0000 & 5 \\
+onion\_layer & raw\_count & negbin & 34.9698 & 0.8000 & 5 \\
 k\_core & raw\_count & negbin & 32.2761 & 0.8000 & 5 \\
 onion\_layer & raw\_count & poisson & 29.2642 & 1.0000 & 5 \\
 k\_core & raw\_count & poisson & 27.5962 & 1.0000 & 5 \\
 effective\_size & raw\_count & ols & 18.9415 & 1.0000 & 5 \\
-total\_degree & raw\_count & negbin & 78437.7137 & 0.8000 & 5 \\
-in\_degree & raw\_count & negbin & 1296922.5451 & 0.8000 & 5 \\
 in\_degree & raw\_count & ols & 11.9311 & 1.0000 & 5 \\
 total\_degree & raw\_count & ols & 11.7360 & 1.0000 & 5 \\
 weighted\_in\_degree & raw\_count & ols & 11.2814 & 1.0000 & 5 \\
+strength & raw\_count & ols & 11.0078 & 1.0000 & 5 \\
+load\_centrality & binary & logit & 10.7945 & 0.4000 & 5 \\
+in\_degree & raw\_count & negbin & 10.5901 & 1.0000 & 4 \\
+pagerank & raw\_count & ols & 9.7771 & 1.0000 & 5 \\
+harmonic\_centrality & raw\_count & ols & 9.3061 & 1.0000 & 5 \\
 closeness\_centrality & raw\_count & ols & 9.2409 & 1.0000 & 5 \\
 proximity\_prestige & raw\_count & ols & 9.2409 & 1.0000 & 5 \\
-harmonic\_centrality & raw\_count & ols & 9.3061 & 1.0000 & 5 \\
-strength & raw\_count & ols & 11.0078 & 1.0000 & 5 \\
-pagerank & raw\_count & ols & 9.7771 & 1.0000 & 5 \\
 triangles & raw\_count & ols & 8.6205 & 1.0000 & 5 \\
-proximity\_prestige & raw\_count & negbin & 2087.3278 & 0.8000 & 5 \\
-closeness\_centrality & raw\_count & negbin & 2087.3278 & 0.8000 & 5 \\
-harmonic\_centrality & raw\_count & negbin & 1968.6431 & 0.8000 & 5 \\
-effective\_size & raw\_count & poisson & 7.0500 & 1.0000 & 5 \\
 katz\_centrality & raw\_count & ols & 8.0268 & 1.0000 & 5 \\
-load\_centrality & binary & logit & 10.7945 & 0.4000 & 5 \\
+load\_centrality & raw\_count & ols & 7.2643 & 1.0000 & 5 \\
+effective\_size & raw\_count & poisson & 7.0500 & 1.0000 & 5 \\
 \bottomrule
 \end{tabular}
 \end{table}

@@ -45,7 +45,7 @@ The raw data records directed, weighted nominations between households. We vary 
     \item \textbf{Directed Strong Ties}: Only ties with weights in the top quartile ($w \ge 0.75$) are retained.
 \end{enumerate}
 
-Table \ref{tab:universe_summary} summarises the basic structural properties of these representations.
+Table \ref{tab:universe_summary} summarises the basic structural properties of these representations, and Figure \ref{fig:universe_edges_hist} illustrates the total edge count across them.
 
 \begin{table}[H]
 \centering
@@ -64,6 +64,13 @@ Directed Strong Ties  & 7311 &  4420 & 0.0001 & 26 \\
 \end{tabular}
 \end{table}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../results/python/figs/universe_edges_hist.png}
+    \caption{Edge count across the five network representations.}
+    \label{fig:universe_edges_hist}
+\end{figure}
+
 \subsection{The Structural Multiverse}
 For each representation, we compute 26 distinct centrality measures spanning four theoretical families \citep{WassermanFaust1994, Newman2018}:
 \begin{itemize}
@@ -74,13 +81,20 @@ For each representation, we compute 26 distinct centrality measures spanning fou
 \end{itemize}
 
 \subsection{The Outcome Multiverse}
-The raw outcome variable---the number of times a household is nominated---is heavily zero-inflated, with only $\sim$4\% of households receiving any nominations. To test robustness to outcome definitions, we specify four variants:
+The raw outcome variable---the number of times a household is nominated---is heavily zero-inflated, with only $\sim$4\% of households receiving any nominations. To test robustness to outcome definitions, we specify four variants, the distributions of which are shown in Figure \ref{fig:outcome_distributions}:
 \begin{enumerate}
     \item \textbf{Raw Count}: The integer count of nominations received.
     \item \textbf{Binary Indicator}: 1 if nominated at least once, 0 otherwise.
     \item \textbf{Within-Village Rank}: The percentile rank of the household's nomination count within their village.
     \item \textbf{Within-Village Share}: The proportion of all village nominations received by the household.
 \end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{../results/python/figs/outcome_distributions.png}
+    \caption{Distribution of the four outcome variants for loan nominations.}
+    \label{fig:outcome_distributions}
+\end{figure}
 
 \subsection{The Inferential Multiverse}
 To map structural position to outcomes, we fit a series of regression models including village-level fixed effects to account for the disconnected nature of the 33 components. To handle the overdispersion of the count data, we vary the model across Ordinary Least Squares (OLS), Poisson, and Negative Binomial regression. For the binary outcome, we utilise Logistic regression. Crucially, to make coefficients comparable across these disparate non-linear link functions, we compute the Average Marginal Effect (AME) for every specification.
@@ -90,56 +104,101 @@ To map structural position to outcomes, we fit a series of regression models inc
 The full pipeline yields 780 distinct regression specifications. We assess robustness by examining the stability of the Average Marginal Effects across the multiverse.
 
 \subsection{Stability of Centrality Effects}
-Table \ref{tab:ame_summary} highlights the centrality measures that yield the most consistently positive and significant Average Marginal Effects across the various outcome and model specifications.
+Table \ref{tab:ame_summary} highlights the centrality measures that yield the most consistently positive and significant Average Marginal Effects across the various outcome and model specifications. Note that 28 Negative Binomial specifications on the raw count outcome diverged due to extreme zero-inflation and are excluded from the summary and visualisations.
 
 \begin{table}[H]
 \centering
-\caption{Top centrality--model specifications by Average Marginal Effect (AME) stability.}
+\caption{Top 30 universe-level AME summaries (sorted by mean AME; excludes 28 divergent Negative Binomial specifications).}
 \label{tab:ame_summary}
-\begin{tabular}{lllr}
+\begin{tabular}{lllrrc}
 \toprule
-Centrality Measure & Outcome Variant & Model & Mean AME \\
+Centrality & Outcome & Model & Mean AME & Frac.\textbackslash space Sig. & N \\
 \midrule
-Effective Size      & Raw Count & OLS     & 18.94 \\
-In-Degree           & Raw Count & OLS     & 11.93 \\
-Total Degree        & Raw Count & OLS     & 11.73 \\
-Weighted In-Degree  & Raw Count & OLS     & 11.28 \\
-Strength            & Raw Count & OLS     & 11.00 \\
-PageRank            & Raw Count & OLS     &  9.77 \\
-Harmonic Centrality & Raw Count & OLS     &  9.30 \\
-Closeness Centrality& Raw Count & OLS     &  9.24 \\
-Triangles           & Raw Count & OLS     &  8.62 \\
-Effective Size      & Raw Count & Poisson &  7.05 \\
+total\_degree & raw\_count & negbin & 78437.7137 & 0.8000 & 5 \\
+strength & raw\_count & negbin & 63248.1632 & 0.6667 & 3 \\
+weighted\_in\_degree & raw\_count & negbin & 63245.1189 & 0.6667 & 3 \\
+weighted\_out\_degree & raw\_count & negbin & 37945.4157 & 0.2000 & 5 \\
+katz\_centrality & raw\_count & negbin & 6323.6694 & 0.5000 & 2 \\
+katz\_prestige\_in & raw\_count & negbin & 2529.6098 & 0.2000 & 5 \\
+proximity\_prestige & raw\_count & negbin & 2087.3278 & 0.8000 & 5 \\
+closeness\_centrality & raw\_count & negbin & 2087.3278 & 0.8000 & 5 \\
+harmonic\_centrality & raw\_count & negbin & 1968.6431 & 0.8000 & 5 \\
+hits\_authority & raw\_count & negbin & 913.3995 & 0.0000 & 5 \\
+effective\_size & raw\_count & negbin & 36.8387 & 1.0000 & 5 \\
+onion\_layer & raw\_count & negbin & 34.9698 & 0.8000 & 5 \\
+k\_core & raw\_count & negbin & 32.2761 & 0.8000 & 5 \\
+onion\_layer & raw\_count & poisson & 29.2642 & 1.0000 & 5 \\
+k\_core & raw\_count & poisson & 27.5962 & 1.0000 & 5 \\
+effective\_size & raw\_count & ols & 18.9415 & 1.0000 & 5 \\
+in\_degree & raw\_count & ols & 11.9311 & 1.0000 & 5 \\
+total\_degree & raw\_count & ols & 11.7360 & 1.0000 & 5 \\
+weighted\_in\_degree & raw\_count & ols & 11.2814 & 1.0000 & 5 \\
+strength & raw\_count & ols & 11.0078 & 1.0000 & 5 \\
+load\_centrality & binary & logit & 10.7945 & 0.4000 & 5 \\
+in\_degree & raw\_count & negbin & 10.5901 & 1.0000 & 4 \\
+pagerank & raw\_count & ols & 9.7771 & 1.0000 & 5 \\
+harmonic\_centrality & raw\_count & ols & 9.3061 & 1.0000 & 5 \\
+closeness\_centrality & raw\_count & ols & 9.2409 & 1.0000 & 5 \\
+proximity\_prestige & raw\_count & ols & 9.2409 & 1.0000 & 5 \\
+triangles & raw\_count & ols & 8.6205 & 1.0000 & 5 \\
+katz\_centrality & raw\_count & ols & 8.0268 & 1.0000 & 5 \\
+load\_centrality & raw\_count & ols & 7.2643 & 1.0000 & 5 \\
+effective\_size & raw\_count & poisson & 7.0500 & 1.0000 & 5 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 The results indicate that \textbf{Effective Size} (a measure of structural holes and non-redundant contacts) and \textbf{In-Degree} (raw popularity) are the most robust predictors of receiving loan nominations. In contrast, global distance measures like Betweenness Centrality exhibit highly unstable or insignificant AMEs. This is theoretically consistent: in highly fragmented, village-level networks, local embeddedness and structural autonomy matter more than acting as a global bridge between distant nodes \citep{Borgatti2005}.
 
+Figure \ref{fig:ame_by_centrality} visualises the distribution of AMEs across the different centrality measures, grouped by theoretical family. Figure \ref{fig:ame_specification_curve} presents the full specification curve, ordering all valid specifications by their estimated AME and mapping them to the underlying model and outcome choices.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../results/python/figs/ame_by_centrality.png}
+    \caption{Distribution of AMEs by centrality measure across the multiverse. Extreme divergent Negative Binomial outliers are excluded, and the display is winsorised at the 95th percentile for clarity.}
+    \label{fig:ame_by_centrality}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../results/python/figs/ame_specification_curve.png}
+    \caption{Specification curve mapping estimated Average Marginal Effects to the underlying analytical choices (Model and Outcome).}
+    \label{fig:ame_specification_curve}
+\end{figure}
+
 We also observe that the choice of regression model drastically impacts the scale of the AME. Negative Binomial models, while theoretically appropriate for overdispersed counts, yielded highly unstable marginal effects in the presence of extreme zero-inflation, occasionally producing computationally unbounded AMEs. OLS and Poisson models provided much more stable marginal inferences.
 
 \subsection{Stability of Node Rankings}
-A key question in multiverse analysis is whether different methodological choices identify the \textit{same} key actors. Table \ref{tab:pagerank_stability} shows the stability of the top-ranked households using PageRank \citep{PageRank1999} across the five different network representations.
+A key question in multiverse analysis is whether different methodological choices identify the \textit{same} key actors. Table \ref{tab:pagerank_stability} shows the stability of the top-ranked households using PageRank \citep{PageRank1999} across the five different network representations, and Figure \ref{fig:centrality_stability_heatmap} visualises the Jaccard overlap of the top-20 sets across these representations.
 
 \begin{table}[H]
 \centering
-\caption{Most stable nodes under PageRank across the five network representations.}
+\caption{Most stable nodes under PageRank across representations (Top-20 frequency).}
 \label{tab:pagerank_stability}
-\begin{tabular}{lrr}
+\begin{tabular}{lrrrr}
 \toprule
-Household ID & Top-20 Count & Top-20 Frequency \\
+Node & Top-20 Count & Top-20 Freq. & N Universes \\
 \midrule
-v56\_h66  & 5 & 100\% \\
-v56\_h4   & 4 &  80\% \\
-v42\_h110 & 4 &  80\% \\
-v53\_h64  & 4 &  80\% \\
-v53\_h44  & 4 &  80\% \\
-v42\_h19  & 3 &  60\% \\
-v77\_h92  & 3 &  60\% \\
-v66\_h91  & 3 &  60\% \\
+v56\_h66 & 5 & 1.0000 & 5 \\
+v56\_h4 & 4 & 0.8000 & 5 \\
+v42\_h110 & 4 & 0.8000 & 5 \\
+v53\_h64 & 4 & 0.8000 & 5 \\
+v53\_h44 & 4 & 0.8000 & 5 \\
+v42\_h19 & 3 & 0.6000 & 5 \\
+v77\_h92 & 3 & 0.6000 & 5 \\
+v66\_h91 & 3 & 0.6000 & 5 \\
+v53\_h81 & 3 & 0.6000 & 5 \\
+v65\_h53 & 3 & 0.6000 & 5 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{../results/python/figs/centrality_stability_heatmap.png}
+    \caption{Jaccard overlap of the Top-20 PageRank nodes across network representations.}
+    \label{fig:centrality_stability_heatmap}
+\end{figure}
 
 Household \texttt{v56\_h66} is uniquely robust, appearing in the top 20 most central nodes regardless of whether the network is treated as directed, undirected, weighted, or thresholded to strong ties only. However, most nodes only appear in the top 20 under specific representational assumptions, highlighting the fragility of targeting specific ``influencers'' based on a single network definition.
 
