@@ -13,7 +13,11 @@ Following the multiverse analysis paradigm of Young and Cumberworth (2025) and S
 
 The full pipeline produces **780 distinct regression specifications** and a **multiverse of Exponential Random Graph Models (ERGMs)** fitted village-by-village across the 33 disconnected village components.
 
-> **Note:** The `.tex` and `.bib` paper source files are **not tracked** in this repository. The compiled PDF will be deposited in `paper/` after local compilation.
+> **Note:** The `.tex` and `.bib` paper source files are **not tracked** in this repository. The compiled PDF is available in `paper/paper.pdf`.
+>
+> **GitHub cannot render PDFs inline in the browser.** To read the paper, please use the direct download link below:
+>
+> [**Download paper.pdf**](https://github.com/mboudour/karnataka-multiverse-network/raw/master/paper/paper.pdf)
 
 ---
 
